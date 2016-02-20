@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 from urllib2 import URLError
 from time import sleep
 import csv
+import json
 
 # This code is necessary to pull from Javascript
 from selenium import webdriver
@@ -11,27 +12,27 @@ driver = webdriver.PhantomJS()
 base_url_trump = "https://www.donaldjtrump.com/press-releases/P"
 base_url_bernie = "https://berniesanders.com/press-release/page/"
 
+
 # Constants
 # how are these numbers determined?
 NUMBER_OF_PAGES_TRUMP = 90
 NUMBER_OF_PAGES_BERNIE = 34
 MIN_TRUMP_URL_LEN = 50
+OUTPUT_PATH = '../data/press_releases.json'
 
-# Functions
-
-def clean_text(text):
-    """
-    Give this paragraph text before joining to one string statement
-    Cleans up the unicode and newline junk
-
-
-    """
-    pass
 
 # this is a set since we're doing existence tests
+press_release_list = []
 press_release_url_set = set()
 
 # Main Body
+
+"""
+The intuition behind this is simple:
+    1) We get the press release urls from each page of press releases
+    2) We then go through the press release urls and get press release text
+    3) We append them to a newline-delimited json file
+"""
 
 for i in range(1, NUMBER_OF_PAGES_TRUMP + 1):
     press_release_urls = []
@@ -67,8 +68,17 @@ for i in range(1, NUMBER_OF_PAGES_TRUMP + 1):
             # we don't need the first or last 5 elements
             # so we slice them out
             trimmed_paragraphs = paragraphs[1:-5]
-            press_release = "".join(trimmed_paragraphs)
-            print(press_release)
+            press_release_text = "".join(trimmed_paragraphs)
+
+            press_release_dict = {
+                "text": press_release_text,
+                "url": pr_url,
+                "author": "Trump",
+            }
+
+            with open(OUTPUT_PATH, 'a') as f:
+                j = json.dumps(press_release_dict) + '\n'
+                f.write(j)
 
             # alternate way of doing this
             # search for the element that begins with "Next Release"
@@ -79,7 +89,6 @@ for i in range(1, NUMBER_OF_PAGES_TRUMP + 1):
             #    fragments.append(p_frag)
             #print Fragments
             #end = fragments.index("Next Release")
-
             #paragraphs = paragraphs[:end]
             #print paragraphs
             #print pr
