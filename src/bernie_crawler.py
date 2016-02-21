@@ -3,35 +3,93 @@ from bs4 import BeautifulSoup
 from urllib2 import URLError
 from time import sleep
 import csv
+import json
 
 #This code is necessary to pull from Javascrip
 from selenium import webdriver
 driver = webdriver.PhantomJS()
 
-#Website urls
-bernie = "https://berniesanders.com/press-release/page/"
+#Website url
+base_url_bernie = "https://berniesanders.com/press-release/page/"
 
-number_of_pages_bernie = 34
+#Number of pages of press releases on site
+NUMBER_OF_PAGES_BERNIE = 34
 
-min_bernie_len_url = 47
+#Min length for url for an individual press release
+MIN_BERNIE_LEN_URL = 47
 
+#This is where our output data will go
+OUTPUT_PATH = '../data/press_releases.json'
+
+#This set will contain all visited urls
+press_release_url_set = set()
+
+# Main Body
+
+"""
+The intuition behind this is simple:
+    1) We get the press release urls from each page of press releases
+    2) We then go through the press release urls and get press release text
+    3) We append them to a newline-delimited json file
+"""
 i=1 #index value set to one (so begins on first page)
 
-all_pr_urls = []
-
-for i in range(1, number_of_pages_bernie+1):
-    press_release_urls = []
-    url = bernie + str(i) #Concatenate url with index value
+for i in range(1, NUMBER_OF_PAGES_BERNIE+1):
+    press_release_urls = [] #empty list to contain urls
+    url = base_url_bernie + str(i) #Concatenate url with index value
     driver.get(url)  #Get the webpage
     soup = BeautifulSoup(driver.page_source) #Convert it to a BS object - "soup"
-    #page = urlopen(url).read()
-    #soup = BeautifulSoup(page)
-    
-    for link in soup.findAll('a', href=True): #finds all hyperlinks
-        L = link['href'] #gets the link string as L
-        if "https://berniesanders.com/press-release/" in L and "mailto" not in L and "facebook.com" not in L and "twitter.com" not in L and len(L) > min_bernie_len_url:
-            #then we have a valid press release link!
+
+    for link in soup.findAll('a', href=True): #finds html objects containing hyperlinks
+        candidate_link = link['href'] #gets the link string as L
+        
+        #if the link is press-relase, does not contain the other strings in 39/40,
+        #as exceeds the minimum length, then include it
+        if "https://berniesanders.com/press-release/" in candidate_link:
+            if "mailto" not in candidate_link:
+                if "facebook.com" not in candidate_link and "twitter.com" not in candidate_link:
+                    if len(candidate_link) > MIN_BERNIE_LEN_URL:
             #so we append it to our list
-            print "SECOND", L
-            #press_release_urls.append(L)
+                        press_release_urls.append(candidate_link)
+    
+    #For each press release link                    
+    for pr_url in press_release_urls:
+        #if it is not in the set of visited links
+        if pr_url not in press_release_url_set:
+            #add it to the set and visit it
+            press_release_url_set.add(pr_url)
+            sleep(1) #limit calls to 2 per second
+            driver.get(pr_url)
+            soup = BeautifulSoup(driver.page_source)
+            content = soup.find_all('p')
+            #print([x.getText() for x in content][-5:])
+            print (
+                "START OF NEW PRESS RELEASE WITH LENGTH {}!".format(len(content))
+            )
+            paragraphs = []
+            for c in content:
+                c_text = c.getText()
+                paragraphs.append(c_text)
+
+            # we don't need the last 3 elements
+            # so we slice them out
+            trimmed_paragraphs = paragraphs[:-3]
+            #we join them back together into a string
+            press_release_text = "".join(trimmed_paragraphs) #trimmed_
+
+            print press_release_text
+            #We now add the info to a dictionary entry
+            press_release_dict = {
+                "text": press_release_text,
+                "url": pr_url,
+                "author": "Bernie",
+            }
+            
+            #And write the dictionary as a new line in our json file
+            with open(OUTPUT_PATH, 'a') as f:
+                #turns dict into valid json string on 1 line
+                j = json.dumps(press_release_dict) + '\n'
+                #writes j to file f
+                f.write(j)
+    #increment index by 1            
     i+=1

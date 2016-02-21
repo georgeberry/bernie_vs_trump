@@ -11,19 +11,14 @@ driver = webdriver.PhantomJS()
 
 # Website urls
 base_url_trump = "https://www.donaldjtrump.com/press-releases/P"
-base_url_bernie = "https://berniesanders.com/press-release/page/"
-
 
 # Constants
 # how are these numbers determined?
 NUMBER_OF_PAGES_TRUMP = 90
-NUMBER_OF_PAGES_BERNIE = 34
 MIN_TRUMP_URL_LEN = 50
 OUTPUT_PATH = '../data/press_releases.json'
 
-
 # this is a set since we're doing existence tests
-press_release_list = []
 press_release_url_set = set()
 
 # Main Body
@@ -36,6 +31,7 @@ The intuition behind this is simple:
 """
 
 for i in range(1, NUMBER_OF_PAGES_TRUMP + 1):
+    print i
     press_release_urls = []
     url = base_url_trump + str(i) # Concatenate url with index value
     driver.get(url)  # Get the webpage
@@ -51,8 +47,8 @@ for i in range(1, NUMBER_OF_PAGES_TRUMP + 1):
                 press_release_urls.append(candidate_link)
     for pr_url in press_release_urls:
         if pr_url not in press_release_url_set:
-            # Question: why sleep here?
-            sleep(1) #limit calls to 1 per second
+
+            sleep(1) #limit calls to 2 per second
             press_release_url_set.add(pr_url)
             driver.get(pr_url)
             soup = BeautifulSoup(driver.page_source)
@@ -78,7 +74,9 @@ for i in range(1, NUMBER_OF_PAGES_TRUMP + 1):
             }
 
             with open(OUTPUT_PATH, 'a') as f:
+                #turns dict into valid json string on 1 line
                 j = json.dumps(press_release_dict) + '\n'
+                #writes j to file f
                 f.write(j)
 
             # alternate way of doing this
@@ -96,4 +94,3 @@ for i in range(1, NUMBER_OF_PAGES_TRUMP + 1):
             #Find text "Next release" or "paid for"
             #for paragraph in text:
             #    print paragraph.getText(), "END OF PARAGRAPH"
->>>>>>> 7e8688578bbbd1040b26c5a773150a9a4202896a
