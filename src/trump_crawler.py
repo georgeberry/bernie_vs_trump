@@ -13,12 +13,17 @@ driver = webdriver.PhantomJS()
 base_url_trump = "https://www.donaldjtrump.com/press-releases/P"
 
 # Constants
-# how are these numbers determined?
+#Number of pages of press releases
 NUMBER_OF_PAGES_TRUMP = 90
+
+#Min length of a valid press release url
+
 MIN_TRUMP_URL_LEN = 50
+
+#Where we save the data output
 OUTPUT_PATH = '../data/press_releases.json'
 
-# this is a set since we're doing existence tests
+#This set will contain all visited press release urls
 press_release_url_set = set()
 
 # Main Body
@@ -31,8 +36,8 @@ The intuition behind this is simple:
 """
 
 for i in range(1, NUMBER_OF_PAGES_TRUMP + 1):
-    print i
-    press_release_urls = []
+
+    press_release_urls = [] #empty list to store urls
     url = base_url_trump + str(i) # Concatenate url with index value
     driver.get(url)  # Get the webpage
     # Convert it to a BS object - "soup"
