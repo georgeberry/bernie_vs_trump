@@ -11,7 +11,7 @@
 
 ## Schedule
 
-* `Lession 1`: Step 1
+* `Lesson 1`: Step 1
 * `Lesson 2`: Steps 2 and 3
 * `Lesson 3`: Step 4
 * `Lesson 4`: Steps 5 and 6
