@@ -1,3 +1,3 @@
 *Icon
 *.pyc
-*.json
+*ghostdriver.log

@@ -1,66 +1,99 @@
-#from urllib2 import urlopen
+
 from bs4 import BeautifulSoup
 from urllib2 import URLError
 from time import sleep
 import csv
+import json
 
-#This code is necessary to pull from Javascrip
+# This code is necessary to pull from Javascript
 from selenium import webdriver
 driver = webdriver.PhantomJS()
 
-#Website urls
-trump = "https://www.donaldjtrump.com/press-releases/P"
+# Website urls
+base_url_trump = "https://www.donaldjtrump.com/press-releases/P"
+base_url_bernie = "https://berniesanders.com/press-release/page/"
 
-number_of_pages_trump = 90
 
-min_trump_len_url = 50
+# Constants
+# how are these numbers determined?
+NUMBER_OF_PAGES_TRUMP = 90
+NUMBER_OF_PAGES_BERNIE = 34
+MIN_TRUMP_URL_LEN = 50
+OUTPUT_PATH = '../data/press_releases.json'
 
-i=1 #index value set to one (so begins on first page)
-all_pr_urls = []
 
-while i <= number_of_pages_trump:
+# this is a set since we're doing existence tests
+press_release_list = []
+press_release_url_set = set()
+
+# Main Body
+
+"""
+The intuition behind this is simple:
+    1) We get the press release urls from each page of press releases
+    2) We then go through the press release urls and get press release text
+    3) We append them to a newline-delimited json file
+"""
+
+for i in range(1, NUMBER_OF_PAGES_TRUMP + 1):
     press_release_urls = []
-    url = trump + str(i) #Concatenate url with index value
-    driver.get(url)  #Get the webpage
-    soup = BeautifulSoup(driver.page_source) #Convert it to a BS object - "soup"
-    #page = urlopen(url).read()
-    #soup = BeautifulSoup(page)
-    
-    for link in soup.findAll('a', href=True): #finds all hyperlinks
-        L = link['href'] #gets the link string as L
-        #print url
-        if "press-release" in L and len(L) > min_trump_len_url:
-            #then we have a valid press release link!
-            #so we append it to our list
-            press_release_urls.append(L)
-    for pr in press_release_urls:
-        if pr not in all_pr_urls:
+    url = base_url_trump + str(i) # Concatenate url with index value
+    driver.get(url)  # Get the webpage
+    # Convert it to a BS object - "soup"
+    soup = BeautifulSoup(driver.page_source)
+
+    # iterate through links, store them
+    for link in soup.findAll('a', href=True):
+        candidate_link = link['href']
+        # two simple criteria for determining if this is a press release url
+        if "press-release" in candidate_link:
+            if len(candidate_link) > MIN_TRUMP_URL_LEN:
+                press_release_urls.append(candidate_link)
+    for pr_url in press_release_urls:
+        if pr_url not in press_release_url_set:
+            # Question: why sleep here?
             sleep(1) #limit calls to 1 per second
-            all_pr_urls.append(pr)
-            driver.get(pr)
+            press_release_url_set.add(pr_url)
+            driver.get(pr_url)
             soup = BeautifulSoup(driver.page_source)
             content = soup.find_all('p')
-            print len(content), "START OF NEW PRESS RELEASE"
-            Paragraphs = []
+            #print([x.getText() for x in content][-5:])
+            print (
+                "START OF NEW PRESS RELEASE WITH LENGTH {}!".format(len(content))
+            )
+            paragraphs = []
             for c in content:
-                text = c.getText()
-                Paragraphs.append(text)   
-            Paragraphs.pop(0) #Removes first element
-            
-            Fragments = []
-            for p in Paragraphs:
-                p_frag = p[:12]
-                Fragments.append(p_frag)
+                c_text = c.getText()
+                paragraphs.append(c_text)
+
+            # we don't need the first or last 5 elements
+            # so we slice them out
+            trimmed_paragraphs = paragraphs[1:-5]
+            press_release_text = "".join(trimmed_paragraphs)
+
+            press_release_dict = {
+                "text": press_release_text,
+                "url": pr_url,
+                "author": "Trump",
+            }
+
+            with open(OUTPUT_PATH, 'a') as f:
+                j = json.dumps(press_release_dict) + '\n'
+                f.write(j)
+
+            # alternate way of doing this
+            # search for the element that begins with "Next Release"
+            # and drop that one and everything after it
+            #fragments = []
+            #for p in paragraphs:
+            #    p_frag = p[:12]
+            #    fragments.append(p_frag)
             #print Fragments
-            end = Fragments.index("Next Release")
-            
-            Paragraphs = Paragraphs[:end]
-            print Paragraphs
-            print pr
+            #end = fragments.index("Next Release")
+            #paragraphs = paragraphs[:end]
+            #print paragraphs
+            #print pr
             #Find text "Next release" or "paid for"
             #for paragraph in text:
             #    print paragraph.getText(), "END OF PARAGRAPH"
-                
-    i+=1
-    
- 
+>>>>>>> 7e8688578bbbd1040b26c5a773150a9a4202896a
