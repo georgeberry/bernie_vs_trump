@@ -64,4 +64,7 @@ while i <= number_of_pages_trump:
             #    print paragraph.getText(), "END OF PARAGRAPH"
                 
     i+=1
+    
+for i in range(1, number_of_pages_bernie+1):
+    
  
