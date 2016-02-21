@@ -1,6 +1,6 @@
 import tweepy
 import json
-import sleep
+import time
 
 """
 We start with bernie and trump's twitter.
@@ -65,10 +65,24 @@ def crawl_user(api, user_id=None, screen_name=None):
             max_id=max_id,
         )
         user_tweets.extend(statuses)
-        # we take the minimum of the observed statuses
+        # We take the minimum of the observed statuses
         max_id = min([status['id'] for status in statuses])
-
-        # stopping condition is simple: if we see less than a full cache
+        # Stopping condition is simple: if we see less than a full cache
         if len(statuses) < 200:
             break
     write_tweets(user_tweets)
+
+def sample_follower_tweets(api, user_id=None, screen_name=None):
+    """
+    This function takes
+    """
+    if user_id and screen_name:
+        raise ValueError
+    if not user_id and not screen_name:
+        raise ValueError
+    api.GetFollowersIds()
+
+
+
+if __name__ == '__main__':
+    pass
