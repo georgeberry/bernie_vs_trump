@@ -2,7 +2,7 @@
 
 ## Steps
 
-1. Get press releases from [Bernie](http://berniesanders.com) and [Trump](http://www.donaldjtrump.com/)'s websites, store them as `.json` files.
+1. Get press releases from [Bernie](http://berniesanders.com/press-release) and [Trump](http://www.donaldjtrump.com/press-releases)'s websites, store them as `.json` files.
 2. Get last 3200 Tweets from [Bernie](https://twitter.com/berniesanders?lang=en) and [Trump](https://twitter.com/realDonaldTrump?ref_src=twsrc%5Egoogle%7Ctwcamp%5Eserp%7Ctwgr%5Eauthor)'s Twitter accounts.
 3. Get up to 3200 Tweets from a small sample of people following both Bernie and Trump.
 4. Perform basic NLP feature extraction, such as constructing unigrams and bigrams, and weighting term frequencies.
