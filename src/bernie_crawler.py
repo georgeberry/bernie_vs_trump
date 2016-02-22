@@ -1,5 +1,5 @@
 from bs4 import BeautifulSoup
-from time import sleep
+import time
 import json
 
 # This code is necessary to pull from Javascript
@@ -58,7 +58,7 @@ for i in range(1, NUMBER_OF_PAGES_BERNIE+1):
         if pr_url not in press_release_url_set:
             # add it to the set and visit it
             press_release_url_set.add(pr_url)
-            sleep(1) #limit calls to 1 per second
+            time.sleep(1) #limit calls to 1 per second
             driver.get(pr_url)
             soup = BeautifulSoup(driver.page_source)
             content = soup.find_all('p')

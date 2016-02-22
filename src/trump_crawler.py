@@ -1,5 +1,5 @@
 from bs4 import BeautifulSoup
-from time import sleep
+import time
 from urllib2 import urlopen
 import json
 
@@ -55,7 +55,7 @@ for i in range(1, NUMBER_OF_PAGES_TRUMP + 1):
     #PROCESSING PRESS RELEASES           
     for pr_url in press_release_urls:
         if pr_url not in press_release_url_set:
-            sleep(1) # limit calls to 1 per second
+            time.sleep(1) # limit calls to 1 per second
             press_release_url_set.add(pr_url)
             driver.get(pr_url)
             soup = BeautifulSoup(driver.page_source)
