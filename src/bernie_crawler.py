@@ -44,7 +44,7 @@ for i in range(1, NUMBER_OF_PAGES_BERNIE+1):
     for link in soup.findAll('a', href=True): #finds html objects containing hyperlinks
         candidate_link = link['href'] #gets the link string as L
         
-        #if the link is press-relase, does not contain the other strings in 39/40,
+        #if the link is press-relase, does not contain the other strings in lines 50/51,
         #as exceeds the minimum length, then include it
         if "https://berniesanders.com/press-release/" in candidate_link:
             if "mailto" not in candidate_link:
