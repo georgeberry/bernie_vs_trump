@@ -36,6 +36,8 @@ For instance: `pip install python-twitter`
 * Numpy/Scipy
 * SciKit Learn
 
+* PhantomJS is crucial for the crawler to work but cannot be installed via pip. The following link contains instructions necessary to install it: http://stackoverflow.com/questions/13287490/is-there-a-way-to-use-phantomjs-in-python?answertab=votes#tab-top
+
 ## Python conventions
 
 * Put a space before a comment: `# This is a comment`
