@@ -1,6 +1,5 @@
 from bs4 import BeautifulSoup
 from time import sleep
-import csv
 import json
 
 #This code is necessary to pull from Javascript
