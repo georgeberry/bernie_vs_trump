@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 from time import sleep
+from urllib2 import urlopen
 import json
 
 # This code is necessary to pull from Javascript
@@ -10,14 +11,15 @@ driver = webdriver.PhantomJS()
 base_url_trump = "https://www.donaldjtrump.com/press-releases/P"
 
 # Constants
-#Number of pages of press releases
+# Number of pages of press releases
 NUMBER_OF_PAGES_TRUMP = 90
-#Min length of a valid press release url
+# Min length of a valid press release url
 MIN_TRUMP_URL_LEN = 50
-#Where we save the data output
+
+# Where we save the data output
 OUTPUT_PATH = '../data/press_releases.json'
 
-#This set will contain all visited press release urls
+# This set will contain all visited press release urls
 press_release_url_set = set()
 
 # Main Body
@@ -29,18 +31,20 @@ The intuition behind this is simple:
     3) We append them to a newline-delimited json file
 """
 
-#CRAWLING THROUGH EACH PAGE OF PRESS RELEASES
+# CRAWLING THROUGH EACH PAGE OF PRESS RELEASES
 for i in range(1, NUMBER_OF_PAGES_TRUMP + 1):
     
     press_release_urls = [] #empty list to store urls
     
-    #READING EACH WEBPAGE
+    # READING EACH WEBPAGE
     url = base_url_trump + str(i) # Concatenate url with index value
+    #page = urlopen(url).read() # Demo these two lines
+    #soup = BeautifulSoup(page)
     driver.get(url)  # Get the webpage
     # Convert it to a BS object - "soup"
     soup = BeautifulSoup(driver.page_source)
 
-    #FINDING AND STORING LINKS TO INDIVIDUAL PRESS RELEASES
+    # FINDING AND STORING LINKS TO INDIVIDUAL PRESS RELEASES
     for link in soup.findAll('a', href=True):
         candidate_link = link['href']
         # two simple criteria for determining if this is a press release url
@@ -51,7 +55,7 @@ for i in range(1, NUMBER_OF_PAGES_TRUMP + 1):
     #PROCESSING PRESS RELEASES           
     for pr_url in press_release_urls:
         if pr_url not in press_release_url_set:
-            sleep(1) #limit calls to 1 per second
+            sleep(1) # limit calls to 1 per second
             press_release_url_set.add(pr_url)
             driver.get(pr_url)
             soup = BeautifulSoup(driver.page_source)
@@ -69,21 +73,21 @@ for i in range(1, NUMBER_OF_PAGES_TRUMP + 1):
             trimmed_paragraphs = paragraphs[1:-5]
             press_release_text = "".join(trimmed_paragraphs)
             
-            #CREATING DICTIONARY
+            # CREATING DICTIONARY
             press_release_dict = {
                 "text": press_release_text,
                 "url": pr_url,
                 "author": "Trump",
             }
             
-            #WRITING DICTIONARY TO JSON
+            # WRITING DICTIONARY TO JSON
             with open(OUTPUT_PATH, 'a') as f:
-                #turns dict into valid json string on 1 line
+                # turns dict into valid json string on 1 line
                 j = json.dumps(press_release_dict) + '\n'
-                #writes j to file f
+                # writes j to file f
                 f.write(j)
                 
-    i+=1 #increementing index by 1
+    i+=1 # increementing index by 1
 
             # alternate way of doing this
             # search for the element that begins with "Next Release"
