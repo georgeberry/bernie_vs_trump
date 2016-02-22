@@ -1,6 +1,5 @@
 
 from bs4 import BeautifulSoup
-from urllib2 import URLError
 from time import sleep
 import csv
 import json
@@ -9,19 +8,16 @@ import json
 from selenium import webdriver
 driver = webdriver.PhantomJS()
 
-# Website urls
+# Website url
 base_url_trump = "https://www.donaldjtrump.com/press-releases/P"
 
 # Constants
 #Number of pages of press releases
 NUMBER_OF_PAGES_TRUMP = 90
-
 #Min length of a valid press release url
-
 MIN_TRUMP_URL_LEN = 50
-
 #Where we save the data output
-OUTPUT_PATH = '../data/press_releases.json'
+OUTPUT_PATH = '../data/press_releases2.json'
 
 #This set will contain all visited press release urls
 press_release_url_set = set()
@@ -35,25 +31,29 @@ The intuition behind this is simple:
     3) We append them to a newline-delimited json file
 """
 
+#CRAWLING THROUGH EACH PAGE OF PRESS RELEASES
 for i in range(1, NUMBER_OF_PAGES_TRUMP + 1):
-
+    
     press_release_urls = [] #empty list to store urls
+    
+    #READING EACH WEBPAGE
     url = base_url_trump + str(i) # Concatenate url with index value
     driver.get(url)  # Get the webpage
     # Convert it to a BS object - "soup"
     soup = BeautifulSoup(driver.page_source)
 
-    # iterate through links, store them
+    #FINDING AND STORING LINKS TO INDIVIDUAL PRESS RELEASES
     for link in soup.findAll('a', href=True):
         candidate_link = link['href']
         # two simple criteria for determining if this is a press release url
         if "press-release" in candidate_link:
             if len(candidate_link) > MIN_TRUMP_URL_LEN:
                 press_release_urls.append(candidate_link)
+    
+    #PROCESSING PRESS RELEASES           
     for pr_url in press_release_urls:
         if pr_url not in press_release_url_set:
-
-            sleep(1) #limit calls to 2 per second
+            sleep(1) #limit calls to 1 per second
             press_release_url_set.add(pr_url)
             driver.get(pr_url)
             soup = BeautifulSoup(driver.page_source)
@@ -66,23 +66,26 @@ for i in range(1, NUMBER_OF_PAGES_TRUMP + 1):
             for c in content:
                 c_text = c.getText()
                 paragraphs.append(c_text)
-
             # we don't need the first or last 5 elements
             # so we slice them out
             trimmed_paragraphs = paragraphs[1:-5]
             press_release_text = "".join(trimmed_paragraphs)
-
+            
+            #CREATING DICTIONARY
             press_release_dict = {
                 "text": press_release_text,
                 "url": pr_url,
                 "author": "Trump",
             }
-
+            
+            #WRITING DICTIONARY TO JSON
             with open(OUTPUT_PATH, 'a') as f:
                 #turns dict into valid json string on 1 line
                 j = json.dumps(press_release_dict) + '\n'
                 #writes j to file f
                 f.write(j)
+                
+    i+=1 #increementing index by 1
 
             # alternate way of doing this
             # search for the element that begins with "Next Release"
