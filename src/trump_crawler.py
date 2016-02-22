@@ -17,7 +17,7 @@ NUMBER_OF_PAGES_TRUMP = 90
 MIN_TRUMP_URL_LEN = 50
 
 # Where we save the data output
-OUTPUT_PATH = '../data/press_releases.json'
+OUTPUT_PATH = '../data/press_releases2.json'
 
 # This set will contain all visited press release urls
 press_release_url_set = set()

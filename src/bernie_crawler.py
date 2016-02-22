@@ -16,7 +16,7 @@ NUMBER_OF_PAGES_BERNIE = 34
 MIN_BERNIE_LEN_URL = 47
 
 # This is where our output data will go
-OUTPUT_PATH = '../data/press_releases.json'
+OUTPUT_PATH = '../data/press_releases2.json'
 
 # This set will contain all visited urls
 press_release_url_set = set()
