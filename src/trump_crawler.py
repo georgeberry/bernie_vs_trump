@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
-import time
 from urllib2 import urlopen
 import json
+import time
 
 # This code is necessary to pull from Javascript
 from selenium import webdriver
@@ -87,7 +87,7 @@ for i in range(1, NUMBER_OF_PAGES_TRUMP + 1):
                 # writes j to file f
                 f.write(j)
                 
-    i+=1 # increementing index by 1
+    i+=1 # incrementing index by 1
 
             # alternate way of doing this
             # search for the element that begins with "Next Release"

@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
-import time
 import json
+import time
 
 # This code is necessary to pull from Javascript
 from selenium import webdriver
