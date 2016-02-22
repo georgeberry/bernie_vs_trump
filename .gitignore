@@ -1,3 +1,4 @@
 *Icon
 *.pyc
 *ghostdriver.log
+*.DS_Store
