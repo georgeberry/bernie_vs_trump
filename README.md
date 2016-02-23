@@ -38,7 +38,7 @@ For instance: `pip install python-twitter`
 * scikit-learn
 * PhantomJS is crucial for our crawler to work but cannot be installed via pip. To install it you must use `brew`, which can be installed in the command line by typing `/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"`. 
 You may have to respond to some prompts during the installation which should take a couple of minutes. 
-Once brew is installed you can easily install PhantomJS by typing the command `brew install phantomjs`.
+* Once brew is installed you can easily install PhantomJS by typing the command `brew install phantomjs`.
 
 ## Python conventions
 
