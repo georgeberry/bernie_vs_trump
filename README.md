@@ -31,12 +31,13 @@ Install 3rd party packages with `pip`
 For instance: `pip install python-twitter`
 
 * python-twitter
-* BeautifulSoup
-* Selenium (with PhantomJS)
-* Numpy/Scipy
-* SciKit Learn
+* beautifulsoup4
+* selenium
+* numpy
+* scipy
+* scikit-learn
 
-* PhantomJS is crucial for the crawler to work but cannot be installed via pip. If you have a Mac and have `brew` installed then you can easily install it through `brew install phantomjs`. The following link contains instructions necessary to install it via an alternative means: http://stackoverflow.com/questions/13287490/is-there-a-way-to-use-phantomjs-in-python?answertab=votes#tab-top
+* PhantomJS is crucial for our crawler to work but cannot be installed via pip. To install it you must use `brew`, which can be installed in the command line by typing `/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"`. You may have to respond to some prompts during the installation which should take a couple of minutes. After this you can easily install PhantomJS by typing the command `brew install phantomjs`.
 
 ## Python conventions
 
