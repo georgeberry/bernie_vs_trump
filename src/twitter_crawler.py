@@ -1,6 +1,7 @@
 import twitter
 import json
 import time
+import random
 
 """
 We start with bernie and trump's twitter.
@@ -15,110 +16,20 @@ We then call the GetFollowersIds API.
 # Constants
 OUTPUT_PATH = '../data/tweets.json'
 LUMINARIES = [
-    '@BernieSanders',
-    '@realDonaldTrump',
+    'BernieSanders',
+    'realDonaldTrump',
 ]
+SAMPLE_FOLLOWER_NUM = 5
 
 # Global variables
-followers = {
-    'trump': [],
-    'bernie': [],
+followers_dict = {
+    x: [] for x in LUMINARIES
 }
 
-with open('your_credentials.json', 'rb') as f:
-    config = json.loads(f.read())
-
-# API globals
-api = twitter.Api(
-    **config
-)
-
-# Class to wrap API ratelimit handling
-class RateLimitHandler:
-    """
-    Hand this class the api instance
-    Gets the rate limit statuses
-
-    Lets you know how many calls you have left, and when it resetes
-    """
-    def __init__(self, api):
-        self.api = api
-        api_ratelim_output = self.api.GetRateLimitStatus()
-        self.rate_limits = self.flatten_api_output(api_ratelim_output)
-
-    def endpoint_current_ratelim(self, endpoint):
-        """
-        Returns a dict of form:
-        {
-            'reset': unixtime,
-            'limit': int,
-            'remaining': int,
-        }
-        For the endpoint requested
-        For instance, can return this dict for '/users/statuses'
-        """
-        self.refresh()
-        return self.rate_limits[endpoint]
-
-    def user_timeline_call(self):
-        """
-        Every time we make a statuses/user_timeline call, we call this
-        It keeps track of ratelim for us, and sleeps/refeshes automatically
-        """
-        user_timeline_lim = self.rate_limits['/statuses/user_timeline']
-        user_timeline_lim['remaining'] -= 1
-        calls_remaining = user_timeline_lim['remaining']
-        if calls_remaining > 0:
-            print('{} calls remaining'.format(remaining))
-        else:
-            wait_time = self.reset_wait_time(user_timeline_lim['reset'])
-            print('Need to sleep for {} seconds'.format(wait_time))
-            time.sleep(wait_time + 1)
-            self.refresh()
-
-    def refresh(self):
-        """
-        If we can make calls to the rate-limit-checking API
-            Then reset the rate limit status
-        If we can't make calls to the rate-limit-checking API
-            Then wait and recursively call this function
-        """
-        rate_limit_lim = self.rate_limits['/application/rate_limit_status']
-        wait_time = self.reset_wait_time(rate_limit_lim['reset'])
-        calls_remaining = rate_limit_lim['remaining']
-
-        if calls_remaining > 0 or wait_time <= 0:
-            api_ratelim_output = self.api.GetRateLimitStatus()
-            self.rate_limits = self.flatten_api_output(api_ratelim_output)
-        else:
-            print('Need to sleep for {} seconds'.format(wait_time))
-            time.sleep(wait_time + 1)
-            self.refresh()
-
-    @staticmethod
-    def reset_wait_time(reset_time):
-        wait_time = reset_time - time.time()
-        return wait_time
-
-    @staticmethod
-    def flatten_api_output(api_ratelim_output):
-        """
-        The API returns somethign that looks like:
-            {'resources': {category: {endpoint: {limit_info}}}}
-        We translate to:
-            {endpoint: {limit_info}}
-        """
-        flattened_rate_limits = {}
-        for category, endpoints in api_ratelim_output['resources'].items():
-            for endpoint, limit_info in endpoints.items():
-                flattened_rate_limits[endpoint] = limit_info
-        return flattened_rate_limits
-
-
 # Functions
-def write_tweets(tweet_list):
-    with open(OUTPUT_PATH, 'a') as f:
-        for tweet in tweet_list:
+def write_tweets(tweet_list_of_dicts, output_path):
+    with open(output_path, 'a') as f:
+        for tweet in tweet_list_of_dicts:
             j = json.dumps(tweet) + '\n'
             f.write(j)
 
@@ -142,7 +53,34 @@ def check_inputs(user_id=None, screen_name=None):
             'Exactly one of screen_name and user_id must be present'
         )
 
-def get_user_timeline(api, user_id=None, screen_name=None):
+def get_rate_lim_info(api, endpoint):
+    """
+    Give this the api instance and an endpoint
+    Endpoint is format:
+        '/category/endpoint_name'
+    Returns a dict of form:
+        {
+            'reset': unixtime,
+            'limit': int,
+            'remaining': int,
+        }
+    We use the following endpoints
+        '/statuses/user_timeline'
+    """
+    rate_lim_statuses = api.GetRateLimitStatus()
+    split_endpoint = endpoint.split('/')
+    category = split_endpoint[1]
+    rate_lim_info = \
+        rate_lim_statuses['resources'][category][endpoint]
+    return rate_lim_info
+
+def get_user_timeline(
+    api,
+    user_id=None,
+    screen_name=None,
+    output_path=None,
+    luminary_name=None
+    ):
     """
     This function crawls all of a user's publicly available tweets
     It uses a while true loop plus a break condition
@@ -150,12 +88,19 @@ def get_user_timeline(api, user_id=None, screen_name=None):
             about how far back we need to go
         We also want to avoid a hacky "initialization call"
 
+    Read up on paging through timelines here:
+        https://dev.twitter.com/rest/public/timelines
+
     The API here returns a list of dicts
     """
     # Make sure inputs are valid
     check_inputs(user_id, screen_name)
     # Create an instance of our RateLimHandler
-    ratelim_handler = RateLimitHandler(api)
+    # ratelim_handler = RateLimitHandler(api)
+    rate_lim_info = get_rate_lim_info(
+        api,
+        '/statuses/user_timeline'
+    )
     # Variables that we'll use to crawl the whole timeline
     max_id = None
     user_tweets = []
@@ -164,28 +109,82 @@ def get_user_timeline(api, user_id=None, screen_name=None):
             screen_name=screen_name,
             user_id=user_id,
             max_id=max_id,
+            count=200,
         )
         user_tweets.extend(statuses)
         # We take the minimum of the observed statuses
-        max_id = min([status['id'] for status in statuses])
+        # This is the max status we want for the NEXT call
+        max_id = min([status._id for status in statuses]) - 1
         # Stopping condition is simple: if we see less than a full cache
         if len(statuses) < 200:
             break
+        rate_lim_info['remaining'] -= 1
+        print(rate_lim_info)
+        if rate_lim_info['remaining'] == 0:
+            to_wait = max(0, rate_lim_info['reset'] - time.time())
+            print('sleeping for {}'.format(to_wait))
+            time.sleep(to_wait)
         # Our ratelim class makes it easy to wait for api reset
-        ratelim_handler.user_timeline_call()
-    write_tweets(user_tweets)
+        # ratelim_handler.user_timeline_call()
+    # we use this when we're crawling the followers of either bernie or trump
+    user_tweets_as_dict = [x.AsDict() for x in user_tweets]
+    for tweet in user_tweets_as_dict:
+        if luminary_name:
+            tweet['luminary_followed'] = luminary_name
+        else:
+            tweet['luminary_followed'] = None
+    write_tweets(user_tweets_as_dict, output_path)
 
-def sample_follower_tweets(api, user_id=None, screen_name=None):
+def sample_followers(
+    api,
+    user_id=None,
+    screen_name=None,
+    total_count=25000,
+    ):
     """
-    This function takes
-    """
-    if user_id and screen_name:
-        raise ValueError
-    if not user_id and not screen_name:
-        raise ValueError
-    api.GetFollowersIds()
+    This function takes an api instance and user_id or screen_name
+    Gets number of pages specified by "pages" argument
 
+    We use a cursor, read up here:
+        https://dev.twitter.com/overview/api/cursoring
+
+    Returns a list of follower ids for the given user
+    """
+    check_inputs(user_id, screen_name)
+    res = api.GetFollowerIDs(
+        user_id=user_id,
+        screen_name=screen_name,
+        total_count=total_count,
+    )
+    return res
 
 
 if __name__ == '__main__':
-    pass
+    with open('your_credentials.json', 'rb') as f:
+        config = json.loads(f.read())
+    # API globals
+    api = twitter.Api(
+        **config
+    )
+    # go through bernie and trump
+    for luminary in LUMINARIES:
+        get_user_timeline(
+            api,
+            screen_name=luminary,
+            output_path=OUTPUT_PATH,
+        )
+        followers = sample_followers(
+            api,
+            screen_name=luminary,
+        )
+        followers_dict[luminary].extend(followers)
+    followers_to_crawl = []
+    for luminary, followers in followers_dict.items():
+        follower_sample = random.sample(followers, SAMPLE_FOLLOWER_NUM)
+        for follower in follower_sample:
+            get_user_timeline(
+                api,
+                user_id=follower,
+                output_path=OUTPUT_PATH,
+                luminary_name=luminary,
+            )
