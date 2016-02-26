@@ -19,7 +19,7 @@ LUMINARIES = [
     'BernieSanders',
     'realDonaldTrump',
 ]
-SAMPLE_FOLLOWER_NUM = 5
+SAMPLE_FOLLOWER_NUM = 3
 
 # Global variables
 followers_dict = {
@@ -116,8 +116,15 @@ def get_user_timeline(
         # This is the max status we want for the NEXT call
         max_id = min([status._id for status in statuses]) - 1
         # Stopping condition is simple: if we see less than a full cache
-        if len(statuses) < 200:
+        if len(statuses) < 150:
+            print('Only found {} statuses for {}'.format(
+                    len(statuses),
+                    screen_name,
+                )
+            )
             break
+        else:
+            print('found 200 statuses for {}'.format(screen_name))
         rate_lim_info['remaining'] -= 1
         print(rate_lim_info)
         if rate_lim_info['remaining'] == 0:
@@ -173,12 +180,13 @@ if __name__ == '__main__':
             screen_name=luminary,
             output_path=OUTPUT_PATH,
         )
-        followers = sample_followers(
-            api,
-            screen_name=luminary,
-        )
-        followers_dict[luminary].extend(followers)
+        #followers = sample_followers(
+        #    api,
+        #    screen_name=luminary,
+        #)
+        #followers_dict[luminary].extend(followers)
     followers_to_crawl = []
+    '''
     for luminary, followers in followers_dict.items():
         follower_sample = random.sample(followers, SAMPLE_FOLLOWER_NUM)
         for follower in follower_sample:
@@ -188,3 +196,4 @@ if __name__ == '__main__':
                 output_path=OUTPUT_PATH,
                 luminary_name=luminary,
             )
+    '''
