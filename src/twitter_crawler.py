@@ -10,7 +10,8 @@ We get the last 3200 messages by paging back.
 
 We save these messages.
 
-We then call the GetFollowersIds API.
+We then call the GetFollowersIds API to get 5000 followers of both
+    Randmoly sample a few followers
 """
 
 # Constants
@@ -19,7 +20,7 @@ LUMINARIES = [
     'BernieSanders',
     'realDonaldTrump',
 ]
-SAMPLE_FOLLOWER_NUM = 3
+SAMPLE_FOLLOWER_NUM = 5
 
 # Global variables
 followers_dict = {
@@ -116,7 +117,7 @@ def get_user_timeline(
         # This is the max status we want for the NEXT call
         max_id = min([status._id for status in statuses]) - 1
         # Stopping condition is simple: if we see less than a full cache
-        if len(statuses) < 150:
+        if len(statuses) < 100:
             print('Only found {} statuses for {}'.format(
                     len(statuses),
                     screen_name,
@@ -124,7 +125,11 @@ def get_user_timeline(
             )
             break
         else:
-            print('found 200 statuses for {}'.format(screen_name))
+            print('found {} statuses for {}'.format(
+                len(statuses),
+                screen_name,
+                )
+            )
         rate_lim_info['remaining'] -= 1
         print(rate_lim_info)
         if rate_lim_info['remaining'] == 0:
@@ -146,7 +151,7 @@ def sample_followers(
     api,
     user_id=None,
     screen_name=None,
-    total_count=25000,
+    total_count=5000,
     ):
     """
     This function takes an api instance and user_id or screen_name
