@@ -14,19 +14,6 @@ We then call the GetFollowersIds API to get 5000 followers of both
     Randmoly sample a few followers
 """
 
-# Constants
-OUTPUT_PATH = '../data/tweets.json'
-LUMINARIES = [
-    'BernieSanders',
-    'realDonaldTrump',
-]
-SAMPLE_FOLLOWER_NUM = 5
-
-# Global variables
-followers_dict = {
-    x: [] for x in LUMINARIES
-}
-
 # Functions
 def write_tweets(tweet_list_of_dicts, output_path):
     with open(output_path, 'a') as f:
@@ -96,8 +83,6 @@ def get_user_timeline(
     """
     # Make sure inputs are valid
     check_inputs(user_id, screen_name)
-    # Create an instance of our RateLimHandler
-    # ratelim_handler = RateLimitHandler(api)
     rate_lim_info = get_rate_lim_info(
         api,
         '/statuses/user_timeline'
@@ -105,46 +90,59 @@ def get_user_timeline(
     # Variables that we'll use to crawl the whole timeline
     max_id = None
     user_tweets = []
+    # We do this loop until we see "break"
+    # Has to be this format because we don't know how far back we have to go
     while True:
-        statuses = api.GetUserTimeline(
-            screen_name=screen_name,
-            user_id=user_id,
-            max_id=max_id,
-            count=200,
-        )
+        try:
+            statuses = api.GetUserTimeline(
+                screen_name=screen_name,
+                user_id=user_id,
+                max_id=max_id,
+                count=200,
+            )
+            # If we get nothing, exit
+            if len(statuses) == 0:
+                break
+        # This except block handles querying private accounts
+        except twitter.TwitterError as e:
+            print('Could not query user, got Twitter Error: {}'.format(e))
+            break
         user_tweets.extend(statuses)
-        # We take the minimum of the observed statuses
+        # We handling PAGING here
         # This is the max status we want for the NEXT call
+        # See paging docs: https://dev.twitter.com/rest/public/timelines
         max_id = min([status._id for status in statuses]) - 1
         # Stopping condition is simple: if we see less than a full cache
+        # The API is supposed to return exactly 200 Tweets
+        # In practice, we usually get 190+
+        # 100 seems like a safe cutoff, this is hand tuned
         if len(statuses) < 100:
-            print('Only found {} statuses for {}'.format(
-                    len(statuses),
-                    screen_name,
-                )
-            )
+            print('Only found {} statuses'.format(len(statuses)))
             break
         else:
-            print('found {} statuses for {}'.format(
-                len(statuses),
-                screen_name,
-                )
-            )
+            print('Found {} statuses'.format(len(statuses)))
+        # If our stop condition is not met
+        # We handle rate limiting here
+        # We generated rate_lim_info above
+        # We decrement the number of calls remaining
+        # If there are 0 calls left, we wait until API window resets
         rate_lim_info['remaining'] -= 1
         print(rate_lim_info)
         if rate_lim_info['remaining'] == 0:
             to_wait = max(0, rate_lim_info['reset'] - time.time())
-            print('sleeping for {}'.format(to_wait))
+            print('Sleeping for {}'.format(to_wait))
             time.sleep(to_wait)
-        # Our ratelim class makes it easy to wait for api reset
-        # ratelim_handler.user_timeline_call()
-    # we use this when we're crawling the followers of either bernie or trump
+    # After we've gotten the whole timeline
+    # Convert tweets to dict
     user_tweets_as_dict = [x.AsDict() for x in user_tweets]
+    # Add a field to this tweet dict indicating if a user follows a luminary
+    #   e.g. Bernie or Trump
     for tweet in user_tweets_as_dict:
         if luminary_name:
             tweet['luminary_followed'] = luminary_name
         else:
             tweet['luminary_followed'] = None
+    # Write tweets by appending them to a big file
     write_tweets(user_tweets_as_dict, output_path)
 
 def sample_followers(
@@ -163,6 +161,17 @@ def sample_followers(
     Returns a list of follower ids for the given user
     """
     check_inputs(user_id, screen_name)
+    rate_lim_info = get_rate_lim_info(
+        api,
+        '/followers/ids',
+    )
+    # Handle rate limit issues here
+    # If we have 0 calls left, wait until reset
+    print(rate_lim_info)
+    if rate_lim_info['remaining'] == 0:
+        to_wait = max(0, rate_lim_info['reset'] - time.time())
+        print('sleeping for {}'.format(to_wait))
+        time.sleep(to_wait)
     res = api.GetFollowerIDs(
         user_id=user_id,
         screen_name=screen_name,
@@ -172,9 +181,31 @@ def sample_followers(
 
 
 if __name__ == '__main__':
+    # Constants
+    OUTPUT_PATH = '../data/tweets.json'
+    LUMINARIES = [
+        'BernieSanders',
+        'realDonaldTrump',
+    ]
+    SAMPLE_FOLLOWER_NUM = 5
+
+    # Global variables
+    followers_dict = {
+        x: [] for x in LUMINARIES
+    }
+    '''
+    Read in your secret API credentials here
+    File looks like this:
+        {
+            "consumer_key": consumer_key,
+            "consumer_secret": consumer_secret,
+            "access_token_key": access_token_key,
+            "access_token_secret": access_token_secret,
+        }
+    '''
     with open('your_credentials.json', 'rb') as f:
         config = json.loads(f.read())
-    # API globals
+    # Authenticate an API instance
     api = twitter.Api(
         **config
     )
@@ -185,20 +216,19 @@ if __name__ == '__main__':
             screen_name=luminary,
             output_path=OUTPUT_PATH,
         )
-        #followers = sample_followers(
-        #    api,
-        #    screen_name=luminary,
-        #)
-        #followers_dict[luminary].extend(followers)
-    followers_to_crawl = []
-    '''
+        followers = sample_followers(
+            api,
+            screen_name=luminary,
+        )
+        followers_dict[luminary].extend(followers)
+    # for both Bernie and Trump, crawl a small sample of followers
     for luminary, followers in followers_dict.items():
         follower_sample = random.sample(followers, SAMPLE_FOLLOWER_NUM)
         for follower in follower_sample:
+            print('Crawling follower {}'.format(follower))
             get_user_timeline(
                 api,
                 user_id=follower,
                 output_path=OUTPUT_PATH,
                 luminary_name=luminary,
             )
-    '''
