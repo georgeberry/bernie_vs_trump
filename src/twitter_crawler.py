@@ -203,7 +203,7 @@ if __name__ == '__main__':
             "access_token_secret": access_token_secret,
         }
     '''
-    with open('your_credentials.json', 'rb') as f:
+    with open('credentials.json', 'rb') as f:
         config = json.loads(f.read())
     # Authenticate an API instance
     api = twitter.Api(

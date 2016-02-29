@@ -33,9 +33,9 @@ The intuition behind this is simple:
 
 # CRAWLING THROUGH EACH PAGE OF PRESS RELEASES
 for i in range(1, NUMBER_OF_PAGES_TRUMP + 1):
-    
+
     press_release_urls = [] #empty list to store urls
-    
+
     # READING EACH WEBPAGE
     url = base_url_trump + str(i) # Concatenate url with index value
     #page = urlopen(url).read() # Demo these two lines
@@ -51,8 +51,8 @@ for i in range(1, NUMBER_OF_PAGES_TRUMP + 1):
         if "press-release" in candidate_link:
             if len(candidate_link) > MIN_TRUMP_URL_LEN:
                 press_release_urls.append(candidate_link)
-    
-    #PROCESSING PRESS RELEASES           
+
+    #PROCESSING PRESS RELEASES
     for pr_url in press_release_urls:
         if pr_url not in press_release_url_set:
             time.sleep(1) # limit calls to 1 per second
@@ -72,21 +72,21 @@ for i in range(1, NUMBER_OF_PAGES_TRUMP + 1):
             # so we slice them out
             trimmed_paragraphs = paragraphs[1:-5]
             press_release_text = "".join(trimmed_paragraphs)
-            
+
             # CREATING DICTIONARY
             press_release_dict = {
                 "text": press_release_text,
                 "url": pr_url,
                 "author": "Trump",
             }
-            
+
             # WRITING DICTIONARY TO JSON
             with open(OUTPUT_PATH, 'a') as f:
                 # turns dict into valid json string on 1 line
                 j = json.dumps(press_release_dict) + '\n'
                 # writes j to file f
                 f.write(j)
-                
+
     i+=1 # incrementing index by 1
 
             # alternate way of doing this

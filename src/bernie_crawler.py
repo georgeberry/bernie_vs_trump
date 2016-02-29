@@ -67,15 +67,17 @@ for i in range(1, NUMBER_OF_PAGES_BERNIE+1):
                 "START OF NEW PRESS RELEASE WITH LENGTH {}!".format(len(content))
             )
             paragraphs = []
+            print content
             for c in content:
                 c_text = c.getText()
                 paragraphs.append(c_text)
             # we don't need the last 3 elements
             # so we slice them out
+            print paragraphs
             trimmed_paragraphs = paragraphs[:-3]
+            print trimmed_paragraphs
             # we join them back together into a string
             press_release_text = "".join(trimmed_paragraphs) #trimmed_
-
             # print press_release_text
             
             # CREATING DICTIONARY

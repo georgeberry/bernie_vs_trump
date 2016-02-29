@@ -3,3 +3,4 @@
 *ghostdriver.log
 *.DS_Store
 *your_credentials.json
+*credentials.json
