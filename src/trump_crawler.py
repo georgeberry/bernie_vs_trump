@@ -60,7 +60,6 @@ for i in range(1, NUMBER_OF_PAGES_TRUMP + 1):
             driver.get(pr_url)
             soup = BeautifulSoup(driver.page_source)
             content = soup.find_all('p')
-            #print([x.getText() for x in content][-5:])
             print (
                 "START OF NEW PRESS RELEASE WITH LENGTH {}!".format(len(content))
             )
@@ -88,19 +87,3 @@ for i in range(1, NUMBER_OF_PAGES_TRUMP + 1):
                 f.write(j)
 
     i+=1 # incrementing index by 1
-
-            # alternate way of doing this
-            # search for the element that begins with "Next Release"
-            # and drop that one and everything after it
-            #fragments = []
-            #for p in paragraphs:
-            #    p_frag = p[:12]
-            #    fragments.append(p_frag)
-            #print Fragments
-            #end = fragments.index("Next Release")
-            #paragraphs = paragraphs[:end]
-            #print paragraphs
-            #print pr
-            #Find text "Next release" or "paid for"
-            #for paragraph in text:
-            #    print paragraph.getText(), "END OF PARAGRAPH"

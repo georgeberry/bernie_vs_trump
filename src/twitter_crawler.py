@@ -11,7 +11,7 @@ We get the last 3200 messages by paging back.
 We save these messages.
 
 We then call the GetFollowersIds API to get 5000 followers of both
-    Randmoly sample a few followers
+    Randomly sample a few followers
 """
 
 # Functions
