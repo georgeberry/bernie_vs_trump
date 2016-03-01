@@ -16,6 +16,11 @@ We then call the GetFollowersIds API to get 5000 followers of both
 
 # Functions
 def write_tweets(tweet_list_of_dicts, output_path):
+    '''
+    Takes data of format:
+        [{tweet}, {tweet}, ...]
+    Writes to path specified
+    '''
     with open(output_path, 'a') as f:
         for tweet in tweet_list_of_dicts:
             j = json.dumps(tweet) + '\n'
@@ -93,6 +98,8 @@ def get_user_timeline(
     # We do this loop until we see "break"
     # Has to be this format because we don't know how far back we have to go
     while True:
+        # This except block handles querying private accounts
+        # We get a TwitterError when we make a call to a private acct
         try:
             statuses = api.GetUserTimeline(
                 screen_name=screen_name,
@@ -100,19 +107,11 @@ def get_user_timeline(
                 max_id=max_id,
                 count=200,
             )
-            # If we get nothing, exit
-            if len(statuses) == 0:
-                break
-        # This except block handles querying private accounts
         except twitter.TwitterError as e:
             print('Could not query user, got Twitter Error: {}'.format(e))
             break
         user_tweets.extend(statuses)
-        # We handling PAGING here
-        # This is the max status we want for the NEXT call
-        # See paging docs: https://dev.twitter.com/rest/public/timelines
-        max_id = min([status._id for status in statuses]) - 1
-        # Stopping condition is simple: if we see less than a full cache
+        # Handle EXIT CONDITION here
         # The API is supposed to return exactly 200 Tweets
         # In practice, we usually get 190+
         # 100 seems like a safe cutoff, this is hand tuned
@@ -121,8 +120,11 @@ def get_user_timeline(
             break
         else:
             print('Found {} statuses'.format(len(statuses)))
-        # If our stop condition is not met
-        # We handle rate limiting here
+        # We handling PAGING here
+        # This is the max status we want for the NEXT call
+        # See paging docs: https://dev.twitter.com/rest/public/timelines
+        max_id = min([status._id for status in statuses]) - 1
+        # We handle RATE LIMITING here
         # We generated rate_lim_info above
         # We decrement the number of calls remaining
         # If there are 0 calls left, we wait until API window resets
@@ -132,6 +134,8 @@ def get_user_timeline(
             to_wait = max(0, rate_lim_info['reset'] - time.time())
             print('Sleeping for {}'.format(to_wait))
             time.sleep(to_wait)
+        else:
+            time.sleep(1.0)
     # After we've gotten the whole timeline
     # Convert tweets to dict
     user_tweets_as_dict = [x.AsDict() for x in user_tweets]
