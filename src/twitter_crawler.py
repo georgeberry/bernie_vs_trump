@@ -93,7 +93,7 @@ def get_user_timeline(
         '/statuses/user_timeline'
     )
     # Variables that we'll use to crawl the whole timeline
-    max_id = None
+    max_id = None #None since we start at top of the timeline
     user_tweets = []
     # We do this loop until we see "break"
     # Has to be this format because we don't know how far back we have to go
