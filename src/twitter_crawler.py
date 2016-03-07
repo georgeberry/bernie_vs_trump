@@ -88,10 +88,12 @@ def get_user_timeline(
     """
     # Make sure inputs are valid
     check_inputs(user_id, screen_name)
-    rate_lim_info = get_rate_lim_info(
-        api,
-        '/statuses/user_timeline'
-    )
+    rate_lim_info = get_rate_lim_info(api, '/statuses/user_timeline')
+    if rate_lim_info['remaining'] == 0:
+        to_wait = max(0, rate_lim_info['reset'] - time.time())
+        print('Sleeping for {}'.format(to_wait))
+        time.sleep(to_wait)
+        rate_lim_info = get_rate_lim_info(api, '/statuses/user_timeline')
     # Variables that we'll use to crawl the whole timeline
     max_id = None #None since we start at top of the timeline
     user_tweets = []
@@ -123,7 +125,7 @@ def get_user_timeline(
         # We handling PAGING here
         # This is the max status we want for the NEXT call
         # See paging docs: https://dev.twitter.com/rest/public/timelines
-        max_id = min([status._id for status in statuses]) - 1
+        max_id = min([status._id for status in statuses]) - 1 #Sets max as the minimum id from the previous call
         # We handle RATE LIMITING here
         # We generated rate_lim_info above
         # We decrement the number of calls remaining
@@ -134,8 +136,9 @@ def get_user_timeline(
             to_wait = max(0, rate_lim_info['reset'] - time.time())
             print('Sleeping for {}'.format(to_wait))
             time.sleep(to_wait)
+            rate_lim_info = get_rate_lim_info(api, '/statuses/user_timeline')
         else:
-            time.sleep(1.0)
+            time.sleep(1.0) #This helps space out calls; good practice
     # After we've gotten the whole timeline
     # Convert tweets to dict
     user_tweets_as_dict = [x.AsDict() for x in user_tweets]
@@ -186,12 +189,14 @@ def sample_followers(
 
 if __name__ == '__main__':
     # Constants
-    OUTPUT_PATH = '../data/tweets.json'
+    OUTPUT_PATH = '../data/tweets3.json'
     LUMINARIES = [
         'BernieSanders',
         'realDonaldTrump',
+       # 'tedcruz','marcorubio',
+       # 'HillaryClinton'
     ]
-    SAMPLE_FOLLOWER_NUM = 5
+    SAMPLE_FOLLOWER_NUM = 250
 
     # Global variables
     followers_dict = {
