@@ -16,7 +16,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
     """
 
 ##RESOURCES USED:
-##GENEAL INFO: http://stackoverflow.com/questions/8897593/similarity-between-two-text-documents
+##GENERAL INFO: http://stackoverflow.com/questions/8897593/similarity-between-two-text-documents
 ##ON COSINE SIMILARIY: http://nlp.stanford.edu/IR-book/html/htmledition/dot-products-1.html,
 ##http://stackoverflow.com/questions/12118720/python-tf-idf-cosine-to-find-document-similarity
 ##TF-IDF WEIGHTS: http://nlp.stanford.edu/IR-book/html/htmledition/tf-idf-weighting-1.html
@@ -103,18 +103,13 @@ if __name__ == '__main__':
     with open("../data/tweet_text.json", 'rb') as f:
         for line in f:
             tweet = json.loads(line)
-            #list_tweets.append(j)
             if tweet['author_status'] == "Bernie":
                 bernie_tweets_BOW += " " + tweet['text']
             elif tweet['author_status'] == "Trump":
-                #Tweet is by trume
                 trump_tweets_BOW += " " + tweet['text']
-            #Tweet belongs to a follower
             elif tweet['author_status'] == "Bernie follower":
                 trumpf_tweets_BOW += " " + tweet['text']
-                #Tweet is by trump follower
             elif tweet['author_status'] == "Trump follower":
-                #Tweet is by bernie follower
                 bernief_tweets_BOW += " " + tweet['text']
 
     ##CHECKING LENGTH OF EACH STRING (Number of characters)
