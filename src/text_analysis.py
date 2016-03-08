@@ -2,6 +2,7 @@ import nltk
 import string
 import sklearn
 import json
+import re
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 """
@@ -21,7 +22,8 @@ them all together. We then compare these BoW to assess the similarity between ea
 ##http://stackoverflow.com/questions/12118720/python-tf-idf-cosine-to-find-document-similarity
 ##TF-IDF WEIGHTS: http://nlp.stanford.edu/IR-book/html/htmledition/tf-idf-weighting-1.html
 
-
+##Setting the stemmer
+stemmer = nltk.stem.porter.PorterStemmer()
 
 def Preprocess(S):
     """
@@ -29,7 +31,11 @@ def Preprocess(S):
         Returns a the edited string
     """
     #Coverts uppercase to lower
+    giant_url_regex = ('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|'
+        '[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+')
     S = S.lower()
+    S = re.sub(r'\s+', ' ', S)
+    S = re.sub(giant_url_regex, '', S)
     #Removes all punctuation
     punct = set(string.punctuation)
     S = ''.join(ch for ch in S if ch not in punct)
@@ -44,12 +50,14 @@ def Tokenize(text):
     stems = [stemmer.stem(t) for t in tokens]
     return stems
 
-
 """
 Converts each string into a TF-IDF weighted numerical vector.
     Returns a data frame containing vectors as columns.
 """
 def Vectorize(*texts):
+    """
+        Remove
+    """
     vectorizer = TfidfVectorizer(tokenizer=Tokenize, stop_words='english')
     tfidf = vectorizer.fit_transform(texts)
     return tfidf
@@ -65,120 +73,115 @@ def freq_count(text):
 
 
 if __name__ == '__main__':
-##Setting the stemmer
-stemmer = nltk.stem.porter.PorterStemmer()
-##Setting the vectorizer
 
+    ##INITIALIZING BAG OF WORDS OBJECTS AS EMPTY STRINGS
+    trump_BOW = []
+    bernie_BOW = []
+    trump_tweets_BOW = []
+    bernie_tweets_BOW = []
+    trumpf_tweets_BOW = []
+    bernief_tweets_BOW = []
 
-##INITIALIZING BAG OF WORDS OBJECTS AS EMPTY STRINGS
-trump_BOW = []
-bernie_BOW = []
-trump_tweets_BOW = []
-bernie_tweets_BOW = []
-trumpf_tweets_BOW = []
-bernief_tweets_BOW = []
+    ##READING IN PRESS RELEASE FILE
+    with open("../data/press_releases.json", 'rb') as f:
+        for line in f:
+            press_release = json.loads(line)
+            author = press_release['author']
+            text = press_release['text']
+            if author == "Trump":
+                trump_BOW.append(text)
+            else:
+                bernie_BOW.append(text)
 
-##READING IN PRESS RELEASE FILE
-with open("../data/press_releases.json", 'rb') as f:
-    for line in f:
-        press_release = json.loads(line)
-        author = press_release['author']
-        text = press_release['text']
-        if author == "Trump":
-            trump_BOW.append(text)
-        else:
-            bernie_BOW.append(text)
+    ##Code below reads tweet file but file too larger
+    ##Instead we ran create_slim_dataset.py to extract only the
+    ##Relevant information from the json file and created a new file
+    ##that is only 6% of the size
 
+    ##READING IN TWEET FILE
+    #    with open("../data/tweets.json", 'rb') as f:
+    #        for line in f:
+    #            tweet = json.loads(line)
+    #            #list_tweets.append(j)
+    #            if tweet['luminary_followed'] == None:
+    #            #Tweet is bernie or trump
+    #                if tweet['user']['screen_name'] == "BernieSanders":
+    #                    #tweet is by Bernie
+    #                    bernie_tweets_BOW += " " + tweet['text']
+    #                else:
+    #                    #Tweet is by trume
+    #                    trump_tweets_BOW += " " + tweet['text']
+    #            #Tweet belongs to a follower
+    #            elif tweet['luminary_followed'] == "realDonaldTrump":
+    #                trumpf_tweets_BOW += " " + tweet['text']
+    #                #Tweet is by trump follower
+    #            elif tweet['luminary_followed'] == "BernieSanders":
+    #                #Tweet is by bernie follower
+    #                bernief_tweets_BOW += " " + tweet['text']
 
-##Code below reads tweet file but file too larger
-##Instead we ran create_slim_dataset.py to extract only the
-##Relevant information from the json file and created a new file
-##that is only 6% of the size
+    ##READING IN TWEET FILE (Shortened file)
+    with open("../data/tweet_text.json", 'rb') as f:
+        for line in f:
+            tweet = json.loads(line)
+            if tweet['author_status'] == "Bernie":
+                bernie_tweets_BOW.append(tweet['text'])
+            elif tweet['author_status'] == "Trump":
+                trump_tweets_BOW.append(tweet['text'])
+            elif tweet['author_status'] == "Bernie follower":
+                trumpf_tweets_BOW.append(tweet['text'])
+            elif tweet['author_status'] == "Trump follower":
+                bernief_tweets_BOW.append(tweet['text'])
 
-##READING IN TWEET FILE
-#    with open("../data/tweets.json", 'rb') as f:
-#        for line in f:
-#            tweet = json.loads(line)
-#            #list_tweets.append(j)
-#            if tweet['luminary_followed'] == None:
-#            #Tweet is bernie or trump
-#                if tweet['user']['screen_name'] == "BernieSanders":
-#                    #tweet is by Bernie
-#                    bernie_tweets_BOW += " " + tweet['text']
-#                else:
-#                    #Tweet is by trume
-#                    trump_tweets_BOW += " " + tweet['text']
-#            #Tweet belongs to a follower
-#            elif tweet['luminary_followed'] == "realDonaldTrump":
-#                trumpf_tweets_BOW += " " + tweet['text']
-#                #Tweet is by trump follower
-#            elif tweet['luminary_followed'] == "BernieSanders":
-#                #Tweet is by bernie follower
-#                bernief_tweets_BOW += " " + tweet['text']
+    # join the lists into big strings
+    trump_BOW = ' '.join(trump_BOW)
+    bernie_BOW = ' '.join(bernie_BOW)
+    trump_tweets_BOW = ' '.join(trump_tweets_BOW)
+    bernie_tweets_BOW = ' '.join(bernie_tweets_BOW)
+    trumpf_tweets_BOW = ' '.join(trumpf_tweets_BOW)
+    bernief_tweets_BOW = ' '.join(bernief_tweets_BOW)
 
-##READING IN TWEET FILE (Shortened file)
-with open("../data/tweet_text.json", 'rb') as f:
-    for line in f:
-        tweet = json.loads(line)
-        if tweet['author_status'] == "Bernie":
-            bernie_tweets_BOW.append(tweet['text'])
-        elif tweet['author_status'] == "Trump":
-            trump_tweets_BOW.append(tweet['text'])
-        elif tweet['author_status'] == "Bernie follower":
-            trumpf_tweets_BOW.append(tweet['text'])
-        elif tweet['author_status'] == "Trump follower":
-            bernief_tweets_BOW.append(tweet['text'])
+    ##CHECKING LENGTH OF EACH STRING (Number of characters)
+    print "Bernie tweets len: ", len(bernie_tweets_BOW)
+    print "Trump tweets len: ", len(trump_tweets_BOW)
+    print "Bernie follower tweets len: ", len(bernief_tweets_BOW)
+    print "Trump follower tweets len: ", len(trumpf_tweets_BOW)
 
-# join the lists into big strings
-trump_BOW = ' '.join(trump_BOW)
-bernie_BOW = ' '.join(bernie_BOW)
-trump_tweets_BOW = ' '.join(trump_tweets_BOW)
-bernie_tweets_BOW = ' '.join(bernie_tweets_BOW)
-trumpf_tweets_BOW = ' '.join(trumpf_tweets_BOW)
-bernief_tweets_BOW = ' '.join(bernief_tweets_BOW)
+    ##ADDING BOW STRINGS TO A LIST
+    texts = [
+        trump_BOW,
+        bernie_BOW,
+        trump_tweets_BOW,
+        bernie_tweets_BOW,
+        trumpf_tweets_BOW,
+        bernief_tweets_BOW,
+    ]
 
-##CHECKING LENGTH OF EACH STRING (Number of characters)
-print "Bernie tweets len: ", len(bernie_tweets_BOW)
-print "Trump tweets len: ", len(trump_tweets_BOW)
-print "Bernie follower tweets len: ", len(bernief_tweets_BOW)
-print "Trump follower tweets len: ", len(trumpf_tweets_BOW)
+    #PREPROCESSING EACH BoW
+    print "Preprocessing"
+    texts = [Preprocess(x) for x in texts]
 
-##ADDING BOW STRINGS TO A LIST
-texts = [
-    trump_BOW,
-    bernie_BOW,
-    trump_tweets_BOW,
-    bernie_tweets_BOW,
-    trumpf_tweets_BOW,
-    bernief_tweets_BOW,
-]
+    ###COMPUTING TFIDF VECTORS
+    print "Vectorizing"
+    vectors = Vectorize(*texts)
 
-#PREPROCESSING EACH BoW
-print "Preprocessing"
-texts = [Preprocess(x) for x in texts]
+    ##COMPUTING COSINE SIMILARITY SCORES
+    print "Comparing Trump and Bernie PR"
+    print ((vectors * vectors.T))[0,1]
 
-###COMPUTING TFIDF VECTORS
-print "Vectorizing"
-vectors = Vectorize(*texts)
+    print "Comparing Trump and Bernie Tweets"
+    print ((vectors * vectors.T))[2,3]
 
-##COMPUTING COSINE SIMILARITY SCORES
-print "Comparing Trump and Bernie PR"
-print ((vectors * vectors.T))[0,1]
+    print "Comparing Trump PR and tweets"
+    print ((vectors * vectors.T))[0,2]
 
-print "Comparing Trump and Bernie Tweets"
-print ((vectors * vectors.T))[2,3]
+    print "Comparing Bernie PR and tweets"
+    print ((vectors * vectors.T))[1,3]
 
-print "Comparing Trump PR and tweets"
-print ((vectors * vectors.T))[0,2]
+    print "Comparing Trump and Bernie Followers' Tweets"
+    print ((vectors * vectors.T))[4,5]
 
-print "Comparing Bernie PR and tweets"
-print ((vectors * vectors.T))[1,3]
+    print "Comparing Trump tweets and his followers' Tweets"
+    print ((vectors * vectors.T))[2,4]
 
-print "Comparing Trump and Bernie Followers' Tweets"
-print ((vectors * vectors.T))[4,5]
-
-print "Comparing Trump tweets and his followers' Tweets"
-print ((vectors * vectors.T))[2,4]
-
-print "Comparing Bernie tweets and his followers' Tweets"
-print ((vectors * vectors.T))[3,5]
+    print "Comparing Bernie tweets and his followers' Tweets"
+    print ((vectors * vectors.T))[3,5]
