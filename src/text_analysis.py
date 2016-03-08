@@ -59,7 +59,7 @@ def Tokenize(text):
 Converts each string into a TF-IDF weighted numerical vector.
     Returns a data frame containing vectors as columns.
 """
-def Vectorize(*texts, stopwords=None):
+def Vectorize(*texts):
     vectorizer = TfidfVectorizer(tokenizer=Tokenize, stop_words=stopwords)
     tfidf = vectorizer.fit_transform(texts)
     return tfidf
@@ -164,7 +164,11 @@ if __name__ == '__main__':
 
     ###COMPUTING TFIDF VECTORS
     print "Vectorizing"
-    vectors = Vectorize(*texts, stopwords=stopwords)
+    vectors = Vectorize(*texts)
+
+    from sklearn.metrics.pairwise import cosine_similarity
+    cs = cosine_similarity(vectors[0:6], vectors)
+    print cs
 
     ##COMPUTING COSINE SIMILARITY SCORES
     print "Comparing Trump and Bernie PR"
