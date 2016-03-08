@@ -22,7 +22,12 @@ them all together. We then compare these BoW to assess the similarity between ea
 ##http://stackoverflow.com/questions/12118720/python-tf-idf-cosine-to-find-document-similarity
 ##TF-IDF WEIGHTS: http://nlp.stanford.edu/IR-book/html/htmledition/tf-idf-weighting-1.html
 
-##Setting the stemmer
+
+#Defining stopwords
+stopwords = nltk.corpus.stopwords.words("english")
+other_exclusions = ["ff", "rt"]
+stopwords.extend(other_exclusions)
+
 stemmer = nltk.stem.porter.PorterStemmer()
 
 def Preprocess(S):
@@ -54,11 +59,8 @@ def Tokenize(text):
 Converts each string into a TF-IDF weighted numerical vector.
     Returns a data frame containing vectors as columns.
 """
-def Vectorize(*texts):
-    """
-        Remove
-    """
-    vectorizer = TfidfVectorizer(tokenizer=Tokenize, stop_words='english')
+def Vectorize(*texts, stopwords=None):
+    vectorizer = TfidfVectorizer(tokenizer=Tokenize, stop_words=stopwords)
     tfidf = vectorizer.fit_transform(texts)
     return tfidf
 
@@ -73,7 +75,6 @@ def freq_count(text):
 
 
 if __name__ == '__main__':
-
     ##INITIALIZING BAG OF WORDS OBJECTS AS EMPTY STRINGS
     trump_BOW = []
     bernie_BOW = []
@@ -92,6 +93,7 @@ if __name__ == '__main__':
                 trump_BOW.append(text)
             else:
                 bernie_BOW.append(text)
+
 
     ##Code below reads tweet file but file too larger
     ##Instead we ran create_slim_dataset.py to extract only the
@@ -162,7 +164,7 @@ if __name__ == '__main__':
 
     ###COMPUTING TFIDF VECTORS
     print "Vectorizing"
-    vectors = Vectorize(*texts)
+    vectors = Vectorize(*texts, stopwords=stopwords)
 
     ##COMPUTING COSINE SIMILARITY SCORES
     print "Comparing Trump and Bernie PR"
