@@ -124,18 +124,28 @@ def cosine_sim(vector1,vector2):
 
 if __name__ == '__main__':
 
-    T1 = lower(T)
-    T2 = remove_punct(T1)
-    B1 = lower(B)
-    B2 = remove_punct(B1)
+    T = lower(T)
+    T = remove_punct(T)
+    T2 = T
+    T = tokens(T)
+    T = stems(T)
+    T = ' '.join(T)
+    Tf = freq_count(T)
+    B = lower(B)
+    B = remove_punct(B)
+    B2 = B
+    B = tokens(B)
+    B = stems(B)
+    B = ' '.join(B)
+    Bf = freq_count(B)
+    All = B+T
+    Allf = freq_count(All)
+    tfidf1 = tfidf(Allf,Bf,Tf)
+    cossim = cosine_sim(tfidf1[1],tfidf1[0])
+    print cossim
 
-    #Stem both, join stems, then calculate the frequency vector.
-    #Note that if term occurs in both docs once then IDF = log(2/2) = log(1) = 0
-    #Thus terms that appear same freq in all docs have a zero weight as they are
-    #redundant information
     vectorizer = TfidfVectorizer(tokenizer=tokens, stop_words=stopwords)
     tfidf = vectorizer.fit_transform([T2,B2])
-    print tfidf
     print ((tfidf * tfidf.T))[0,1]
     from sklearn.metrics.pairwise import cosine_similarity
     cs = cosine_similarity(tfidf[0:1], tfidf)
