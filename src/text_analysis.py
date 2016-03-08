@@ -2,6 +2,7 @@ import nltk
 import string
 import sklearn
 import json
+import re
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 """
@@ -35,7 +36,11 @@ def Preprocess(S):
         Returns a the edited string
     """
     #Coverts uppercase to lower
+    giant_url_regex = ('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|'
+        '[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+')
     S = S.lower()
+    S = re.sub(r'\s+', ' ', S)
+    S = re.sub(giant_url_regex, '', S)
     #Removes all punctuation
     punct = set(string.punctuation)
     S = ''.join(ch for ch in S if ch not in punct)
@@ -54,7 +59,7 @@ def Tokenize(text):
 Converts each string into a TF-IDF weighted numerical vector.
     Returns a data frame containing vectors as columns.
 """
-def Vectorize(*texts):
+def Vectorize(*texts, stopwords=None):
     vectorizer = TfidfVectorizer(tokenizer=Tokenize, stop_words=stopwords)
     tfidf = vectorizer.fit_transform(texts)
     return tfidf
@@ -159,7 +164,7 @@ if __name__ == '__main__':
 
     ###COMPUTING TFIDF VECTORS
     print "Vectorizing"
-    vectors = Vectorize(*texts)
+    vectors = Vectorize(*texts, stopwords=stopwords)
 
     ##COMPUTING COSINE SIMILARITY SCORES
     print "Comparing Trump and Bernie PR"
