@@ -32,6 +32,7 @@ from sklearn import naive_bayes
 import nltk
 from nltk.tokenize import TweetTokenizer
 import pandas as pd
+from textstat.textstat import textstat
 from ggplot import *
 
 tweet_tokenizer = TweetTokenizer(reduce_len=True)
@@ -89,7 +90,10 @@ def extra_features(text_string):
     Should create that preprocess + tokenizer can't
     Takes a text string, returns counts of features
     """
-    pass
+    flesch = textstat.flesch_reading_ease(tweet)
+    flesch_kincaid = textstat.flesch_kincaid_grade(tweet)
+    gunning_fog = textstat.gunning_fog(tweet)
+    return flesch, flesch_kincaid, gunning_fog
 
 if __name__ == '__main__':
     vectorizer = TfidfVectorizer(
@@ -102,11 +106,17 @@ if __name__ == '__main__':
         for line in f:
             j = json.loads(line)
             author_status = j['author_status']
-            if author_status == 'Bernie':
+            if author_status == 'Trump':
+                j['author_status'] = 0
+                list_of_dicts.append(j)
+            elif author_status == 'Bernie':
                 j['author_status'] = 1
                 list_of_dicts.append(j)
-            elif author_status == 'Trump':
-                j['author_status'] = 0
+            elif author_status == 'Trump follower':
+                j['author_status'] = 2
+                list_of_dicts.append(j)
+            elif author_status == 'Bernie follower':
+                j['author_status'] = 3
                 list_of_dicts.append(j)
             else:
                 # keep only bernie/trump tweets for now
@@ -116,8 +126,15 @@ if __name__ == '__main__':
     # Also handles strings nicely
     df = pd.DataFrame(list_of_dicts)
     # This is the syntax to pull out columns of the df
-    y = df['author_status']
-    X = vectorizer.fit_transform(df['text'])
+
+    # Trump v Bernie
+    # Select rows that correspond to Bernie or Trump tweets only
+    trump_bernie_df = df[df['author_status'] < 2].copy()
+
+    y = trump_bernie_df['author_status']
+    X = trump_bernie_df['text']
+    vectorizer.fit(X)
+    X = vectorizer.transform(X)
 
     X_train, X_test, y_train, y_test = cross_validation.train_test_split(
         X,
@@ -134,11 +151,39 @@ if __name__ == '__main__':
 
     # AUC-ROC
     # area under receiver operator curve
-    preds = bnb.predict_proba(X_test)[:,1]
-    fpr, tpr, _ = metrics.roc_curve(y_test, preds)
+    y_pred = bnb.predict_proba(X_test)[:,1]
+    fpr, tpr, _ = metrics.roc_curve(y_test, y_pred)
 
-    df = pd.DataFrame(dict(fpr=fpr, tpr=tpr))
-    g = ggplot(df, aes(x='fpr',y='tpr')) +\
+    roc_df = pd.DataFrame(dict(fpr=fpr, tpr=tpr))
+    #g = ggplot(roc_df, aes(x='fpr',y='tpr')) +\
+    #    geom_line() +\
+    #    geom_abline(linetype='dashed')
+    # print(g)
+
+    # Follower classification
+    follower_df = df[df['author_status'] > 1].copy()
+    # follower_df = follower_df.iloc[0:100,:]
+    follower_df['author_status'] -= 2
+
+    print(follower_df)
+
+    y_follower = follower_df['author_status']
+    print('made y')
+    X_follower = vectorizer.transform(follower_df['text'])
+    print('made x')
+    print(y_follower)
+    y_follower_pred_prob = bnb.predict_proba(X_follower)[:,1]
+    y_follower_pred = bnb.predict(X_follower)
+    # summary measures here
+
+    print(metrics.f1_score(y_follower, y_follower_pred))
+
+    fpr, tpr, _ = metrics.roc_curve(y_follower, y_follower_pred_prob)
+    roc_df = pd.DataFrame(dict(fpr=fpr, tpr=tpr))
+    print(roc_df)
+    g = ggplot(roc_df, aes(x='fpr',y='tpr')) +\
         geom_line() +\
         geom_abline(linetype='dashed')
     print(g)
+
+    # retrain this on followers #
