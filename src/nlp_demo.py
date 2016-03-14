@@ -124,9 +124,9 @@ def cosine_sim(vector1,vector2):
 
 if __name__ == '__main__':
 
-    T = lower(T)
-    T = remove_punct(T)
-    T2 = T
+    t = lower(T)
+    t = remove_punct(T)
+    T2 = t
     T = tokens(T)
     T = stems(T)
     T = ' '.join(T)
@@ -144,9 +144,9 @@ if __name__ == '__main__':
     cossim = cosine_sim(tfidf1[1],tfidf1[0])
     print cossim
 
-    vectorizer = TfidfVectorizer(tokenizer=tokens, stop_words=stopwords)
-    tfidf = vectorizer.fit_transform([T2,B2])
-    print ((tfidf * tfidf.T))[0,1]
-    from sklearn.metrics.pairwise import cosine_similarity
-    cs = cosine_similarity(tfidf[0:1], tfidf)
-    print cs
+vectorizer = TfidfVectorizer(tokenizer=tokens, stop_words=stopwords)
+tfidf = vectorizer.fit_transform([T,B])
+print ((tfidf * tfidf.T))[0,1]
+from sklearn.metrics.pairwise import cosine_similarity
+cs = cosine_similarity(tfidf[0:1], tfidf)
+print cs
