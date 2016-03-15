@@ -58,14 +58,15 @@ def tfidf(freq_all, freq_b, freq_t):
         word = i[0]
         tf = i[1]
         if tf == 1:
-            idf = math.log(N/1)
+            idf = math.log(1 + N/1)
         #term occurs more than once in corpus
         elif word in fb and word in ft:
             #if term is in both docs
-            idf = math.log(N/2)
+            idf = math.log(1 + N/2)
             #term is only in one doc
-        else:
-            idf = math.log(N/1)
+        else: #word is only in one document but occurs
+            #more than once
+            idf = math.log(1 + N/1)
         t = (word,idf)
         idf_vector.append(t)
     #convert the list of tuples to a dict

@@ -73,9 +73,8 @@ def freq_count(text):
         count_dict[word] += 1
     return sorted(count_dict.items(), reverse=True, key=lambda x: x[1])
 
-
 if __name__ == '__main__':
-    ##INITIALIZING BAG OF WORDS OBJECTS AS EMPTY STRINGS
+    ##INITIALIZING BAG OF WORDS OBJECTS AS EMPTY LIST
     trump_BOW = []
     bernie_BOW = []
     trump_tweets_BOW = []
