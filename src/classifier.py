@@ -75,7 +75,7 @@ def tokenizer(text_string):
     Does all of the processing we want
     """
     preprocessed_text = preprocess(text_string)
-    tokens = tweet_tokenizer(preprocessed_text)
+    tokens = tweet_tokenizer.tokenize(preprocessed_text)
     return tokens
 
 def stemming_tokenizer(text_string):
@@ -83,7 +83,7 @@ def stemming_tokenizer(text_string):
     Exactly like the tokenizer function but with stemmer
     """
     preprocessed_text = preprocess(text_string)
-    tokens = tweet_tokenizer(preprocessed_text)
+    tokens = tweet_tokenizer.tokenize(preprocessed_text)
     stems = [stemmer.stem(t) for t in tokens]
     return stems
 
