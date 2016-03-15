@@ -157,10 +157,10 @@ if __name__ == '__main__':
     fpr, tpr, _ = metrics.roc_curve(y_test, y_pred)
 
     roc_df = pd.DataFrame(dict(fpr=fpr, tpr=tpr))
-    #g = ggplot(roc_df, aes(x='fpr',y='tpr')) +\
-    #    geom_line() +\
-    #    geom_abline(linetype='dashed')
-    # print(g)
+    g = ggplot(roc_df, aes(x='fpr',y='tpr')) +\
+        geom_line() +\
+        geom_abline(linetype='dashed')
+    print(g)
 
     # Follower classification
     follower_df = df[df['author_status'] > 1].copy()

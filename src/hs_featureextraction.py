@@ -7,7 +7,8 @@ import pandas
 from textstat.textstat import textstat
 from vaderSentiment.vaderSentiment import sentiment as VS
 
-"""This program extracts features from the labelled hate speech tweets"""
+"""This program extracts features from the labelled hate speech tweets
+    and returns a pandas dataframe."""
 
 ##Defining stopwords list
 stopwords = nltk.corpus.stopwords.words("english")
@@ -16,7 +17,7 @@ other_exclusions = ["#FF", "#ff"] #note the exclusions vary depending if we stem
 stopwords.extend(other_exclusions)
 
 stemmer = nltk.stem.porter.PorterStemmer()
-tokenizer = nltk.tokenize.TweetTokenizer()
+tokenizer = nltk.tokenize.TweetTokenizer(reduce_len=True)
 
 def tokenize(tweet):
     tokens = tokenizer.tokenize(tweet)
@@ -27,9 +28,12 @@ def tokenize(tweet):
     return stems
 
 def other_features(tweet):
+
     ##SENTIMENT
     sentiment = VS(tweet)
+
     ##READABILITY
+
     #See https://pypi.python.org/pypi/textstat/
     flesch = round(textstat.flesch_reading_ease(tweet),3)
     flesch_kincaid = round(textstat.flesch_kincaid_grade(tweet),3)
@@ -55,24 +59,33 @@ def other_features(tweet):
     return features
 
 
-def hate_dict_features(hate_dict, tweet):
+def hate_dict_features(hate_words, tweet):
     """This function creates a feature vector based on the terms
-    in the hate speech dictionary.
+    in the hate words lexicon
 
     This function takes a tweet and checks for matching terms in
-    the hate speech dictionary. It assigns a vector to the tweet
-    of the length of dictionary, where nth entry == 1 iff nth term
+    the hate words list. It assigns a vector to the tweet
+    of the length of list, where nth entry == 1 iff nth term
     is present in the tweet, else 0."""
 
     ##Amend this to make format a data frame that can be extended
     df = []
     tweet = tweet.lower()
-    for term in sorted(hate_dict.keys()):
+    for term in hate_words:
         #if term is in tweet + a space (to prevent over counting)
         if term.lower()+' ' in tweet or ' '+term.lower() in tweet:
             df.append(1)
         #if term is not in tweet we assign a 0
         else:
             df.append(0)
-    print df
     return df
+
+if __name__ == '__main__':
+    D = pickle.load(open("hate_dict.p", 'rb'))
+    tweets = D.keys()
+    hate_words = []
+    file = 'd_cf_dict.csv'
+    f = open(file, 'rU')
+    reader = csv.reader(f)
+    for row in reader:
+        hate_words.append(row[0])
