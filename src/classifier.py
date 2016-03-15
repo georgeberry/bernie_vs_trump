@@ -168,6 +168,7 @@ if __name__ == '__main__':
     # Recall: tp / (tp + fn)
     # F_1: 2 * (precision * recall) / precision + recall
     #   e.g. harmonic mean of precision and recall
+    print('Classification task: Bernie vs Trump')
     print(
         'Baseline guessing is {}'.format(float(sum(y_train)) / len(y_train))
     )
@@ -205,6 +206,7 @@ if __name__ == '__main__':
     y_follower_pred_prob = bnb.predict_proba(X_follower)[:,1]
     y_follower_pred = bnb.predict(X_follower)
     # summary measures here
+    print('Classification Task: Telling followers apart 1')
     print(
         'Baseline guessing is {}'.format(
             float(sum(y_follower)) / len(y_follower)
@@ -256,6 +258,7 @@ if __name__ == '__main__':
     yf_pred_prob = bnbf.predict_proba(Xf_test)[:,1]
     yf_pred = bnbf.predict(Xf_test)
     # summary measures here
+    print('Classification task: Telling followers apart 2')
     print(
         'Baseline guessing is {}'.format(float(sum(yf_train)) / len(yf_train))
     )
@@ -307,7 +310,7 @@ if __name__ == '__main__':
     dt = tree.DecisionTreeClassifier()
     dt.fit(Xa_train, ya_train)
     ya_pred = dt.predict(Xa_test)
-
+    print('Classification task: Telling followers apart 3')
     print(
         'Baseline guessing is {}'.format(float(sum(ya_train)) / len(ya_train))
     )
