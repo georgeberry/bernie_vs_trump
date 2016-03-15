@@ -36,7 +36,8 @@ def Preprocess(S):
         Returns a the edited string
     """
     #Coverts uppercase to lower
-
+    giant_url_regex = ('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|'
+        '[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+')
     S = S.lower()
     S = re.sub(r'\s+', ' ', S)
     S = re.sub(giant_url_regex, '', S)
@@ -72,9 +73,8 @@ def freq_count(text):
         count_dict[word] += 1
     return sorted(count_dict.items(), reverse=True, key=lambda x: x[1])
 
-
 if __name__ == '__main__':
-    ##INITIALIZING BAG OF WORDS OBJECTS AS EMPTY STRINGS
+    ##INITIALIZING BAG OF WORDS OBJECTS AS EMPTY LIST
     trump_BOW = []
     bernie_BOW = []
     trump_tweets_BOW = []
