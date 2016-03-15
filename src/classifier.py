@@ -34,6 +34,7 @@ from nltk.tokenize import TweetTokenizer
 import pandas as pd
 from textstat.textstat import textstat
 from ggplot import *
+from vaderSentiment.vaderSentiment import sentiment as vaderSentiment
 
 tweet_tokenizer = TweetTokenizer(reduce_len=True)
 
@@ -84,16 +85,17 @@ def stemming_tokenizer(text_string):
     stems = [stemmer.stem(t) for t in tokens]
     return stems
 
-def extra_features(text_string):
+def extra_features(tweet):
     """
     Sometimes we want to hand craft features, this does that
     Should create that preprocess + tokenizer can't
     Takes a text string, returns counts of features
     """
+    vs = vaderSentiment(tweet)
     flesch = textstat.flesch_reading_ease(tweet)
     flesch_kincaid = textstat.flesch_kincaid_grade(tweet)
     gunning_fog = textstat.gunning_fog(tweet)
-    return flesch, flesch_kincaid, gunning_fog
+    return vs['compound'],flesch, flesch_kincaid, gunning_fog
 
 if __name__ == '__main__':
     vectorizer = TfidfVectorizer(
