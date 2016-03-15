@@ -87,7 +87,7 @@ def stemming_tokenizer(text_string):
     stems = [stemmer.stem(t) for t in tokens]
     return stems
 
-def extra_features(tweet):
+def extra_features(text_string):
     """
     Sometimes we want to hand craft features, this does that
     Should create that preprocess + tokenizer can't
