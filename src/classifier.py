@@ -36,7 +36,6 @@ from nltk.tokenize import TweetTokenizer
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from textstat.textstat import textstat
 from ggplot import *
-from vaderSentiment.vaderSentiment import sentiment as vaderSentiment
 
 vadr = SentimentIntensityAnalyzer()
 tweet_tokenizer = TweetTokenizer(reduce_len=True)
