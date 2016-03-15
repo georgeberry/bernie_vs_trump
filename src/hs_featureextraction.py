@@ -28,12 +28,9 @@ def tokenize(tweet):
     return stems
 
 def other_features(tweet):
-
     ##SENTIMENT
     sentiment = VS(tweet)
-
     ##READABILITY
-
     #See https://pypi.python.org/pypi/textstat/
     flesch = round(textstat.flesch_reading_ease(tweet),3)
     flesch_kincaid = round(textstat.flesch_kincaid_grade(tweet),3)
