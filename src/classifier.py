@@ -100,7 +100,6 @@ def extra_features(tweet):
     The textstat measures return numbers
     The sentiment is a named dict
     """
-<<<<<<< HEAD
     output_dict = {}
     # try:
     #     output_dict['flesch'] = textstat.flesch_reading_ease(text_string)
@@ -110,14 +109,6 @@ def extra_features(tweet):
     for k, v in sentiment_dict.items():
         output_dict[k] = v
     return output_dict
-
-=======
-    vs = vaderSentiment(tweet)
-    flesch = textstat.flesch_reading_ease(tweet)
-    flesch_kincaid = textstat.flesch_kincaid_grade(tweet)
-    gunning_fog = textstat.gunning_fog(tweet)
-    return vs['compound'],flesch, flesch_kincaid, gunning_fog
->>>>>>> 940c77bf968b32e18f0b96e9968d12c118a2c86b
 
 if __name__ == '__main__':
     list_of_dicts = []
@@ -196,7 +187,6 @@ if __name__ == '__main__':
     y_pred_prob = bnb.predict_proba(X_test)[:,1]
     fpr, tpr, _ = metrics.roc_curve(y_test, y_pred_prob)
     roc_df = pd.DataFrame(dict(fpr=fpr, tpr=tpr))
-<<<<<<< HEAD
     '''
     g = ggplot(roc_df, aes(x='fpr',y='tpr')) +\
         geom_line() +\
@@ -208,15 +198,6 @@ if __name__ == '__main__':
     #############################
     ## Follower classification ##
     follower_df = df[df['author_status'] >= 2].copy().sample(n=10000)
-=======
-    g = ggplot(roc_df, aes(x='fpr',y='tpr')) +\
-        geom_line() +\
-        geom_abline(linetype='dashed')
-    print(g)
-
-    # Follower classification
-    follower_df = df[df['author_status'] > 1].copy()
->>>>>>> 940c77bf968b32e18f0b96e9968d12c118a2c86b
     # follower_df = follower_df.iloc[0:100,:]
     follower_df['author_status'] -= 2
 
